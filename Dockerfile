@@ -1,6 +1,5 @@
 FROM php:8.2-apache
 
-# Instalar extensiones PHP necesarias
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
@@ -27,34 +26,33 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Configurar Apache
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 RUN a2enmod rewrite
 
-# Copiar proyecto
+RUN echo '<VirtualHost *:80>\n\
+    DocumentRoot /var/www/html/public\n\
+    <Directory /var/www/html/public>\n\
+        AllowOverride All\n\
+        Require all granted\n\
+        Options Indexes FollowSymLinks\n\
+    </Directory>\n\
+    ErrorLog ${APACHE_LOG_DIR}/error.log\n\
+    CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
+</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
+
 WORKDIR /var/www/html
 COPY . .
 
-# Instalar dependencias PHP
 RUN composer install --no-dev --optimize-autoloader
-
-# Instalar dependencias JS y compilar assets
 RUN npm install && npm run build
 
-# Permisos
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Puerto por defecto
 ENV PORT=80
 EXPOSE 80
 
-# Script de inicio
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
