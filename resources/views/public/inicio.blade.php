@@ -52,8 +52,7 @@
                 </p>
             </div>
             <div class="rounded-2xl bg-bosque-900 h-64 flex items-center justify-center text-bosque-50">
-            <img src="{{ asset('img/lugar.png') }}" alt="Recorrido por las instalaciones" class="w-full h-full object-cover"> 
-            
+            <img src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=800&q=80" alt="Recorrido por las instalaciones" class="w-full h-full object-cover rounded-2xl">
             </div>
         </div>
     </section>
